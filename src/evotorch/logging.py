@@ -30,6 +30,7 @@ from .algorithms.searchalgorithm import SearchAlgorithm
 from .core import Problem, Solution
 from .neuroevolution.net import device_of_module
 from .tools import ReadOnlyTensor, clone, is_dtype_object, is_sequence
+from torch.utils.tensorboard import SummaryWriter
 
 try:
     import pandas
@@ -747,3 +748,18 @@ if wandb is not None:
                 log_status[target_key] = v
 
             wandb.log(log_status)
+
+class TensorBoardLogger(Logger):
+    def __init__(self, searcher, log_dir='runs'):
+        super().__init__(searcher)
+        self.writer = SummaryWriter(log_dir=log_dir)
+        self.iteration = 0
+
+    def _log(self, status: dict):
+        for key, value in status.items():
+            if isinstance(value, (int, float)):
+                self.writer.add_scalar(key, value, self.iteration)
+        self.iteration += 1
+
+    def close(self):
+        self.writer.close()

@@ -540,7 +540,7 @@ class VecGymNE(BaseNEProblem):
                 # and the observations and rewards that we receive are PyTorch tensors.
                 self._env = TorchWrapper(self._env, **torch_wrapper_cfg)
 
-            if self._env.num_envs != num_policies:
+            if self._env.unwrapped.num_envs != num_policies:
                 # If the finally obtained vectorized environment has a different number of batch size, then we trigger
                 # an error.
                 raise ValueError("Incompatible number of environments")
@@ -548,10 +548,10 @@ class VecGymNE(BaseNEProblem):
             # We update the batch size of the created environment.
             self._num_envs = num_policies
 
-            if not isinstance(self._env.single_observation_space, Box):
+            if not isinstance(self._env.unwrapped.single_observation_space, Box):
                 # If the observation space is not Box, then we trigger an error.
                 raise TypeError(
-                    f"Unsupported observation type: {self._env.single_observation_space}."
+                    f"Unsupported observation type: {self._env.unwrapped.single_observation_space}."
                     f" Only Box-typed observation spaces are supported."
                 )
 
@@ -560,7 +560,7 @@ class VecGymNE(BaseNEProblem):
                 # Although the new gym API removed the seed method, some environments define their own `seed(...)`
                 # method for randomization.
                 new_seed = random.randint(0, (2**32) - 1)
-                self._env.seed(new_seed)
+                self._env.unwrapped.seed(new_seed)
             except Exception:
                 # Our attempt at manually seeding the environment has failed.
                 # This could be because the environment does not have a `seed(...)` method.
